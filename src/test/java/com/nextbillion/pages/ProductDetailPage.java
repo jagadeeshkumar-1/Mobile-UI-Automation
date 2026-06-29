@@ -28,6 +28,7 @@ public class ProductDetailPage extends BasePage {
     /* ── Actions ─────────────────────────────────────────── */
 
     public ProductDetailPage addToCart() {
+        scrollDownTo("Tap to add product to cart");
         tap(ADD_TO_CART_BTN);
         return this;
     }

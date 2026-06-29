@@ -1,5 +1,6 @@
 package com.nextbillion.base;
 
+import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -63,5 +64,11 @@ public abstract class BasePage {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    protected WebElement scrollDownTo(String contentDesc) {
+        return driver.findElement(AppiumBy.androidUIAutomator(
+                "new UiScrollable(new UiSelector().scrollable(true))"
+                + ".scrollIntoView(new UiSelector().descriptionContains(\"" + contentDesc + "\"))"));
     }
 }

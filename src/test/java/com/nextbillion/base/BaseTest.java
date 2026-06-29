@@ -55,7 +55,7 @@ public abstract class BaseTest {
 
         String appiumUrl = resolve("appium.url", DEFAULT_APPIUM_URL);
         driver = new AndroidDriver(new URL(appiumUrl), options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(45));
 
         // Wait for splash screen to finish and Products page to load
         wait.until(ExpectedConditions.visibilityOfElementLocated(

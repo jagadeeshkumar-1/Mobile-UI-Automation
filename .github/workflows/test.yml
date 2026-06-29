@@ -80,13 +80,17 @@ jobs:
         with:
           api-level: 30
           arch: x86_64
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          profile: pixel_4
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -skin 1080x2280
           disable-animations: true
           script: |
             appium --log-level error &
             sleep 5
             adb wait-for-device
+            adb shell wm size 1080x2280
+            adb shell wm density 440
             adb shell input keyevent 82
+            sleep 3
             GROUP=${{ steps.group.outputs.group }}
             MVN_ARGS="-B --no-transfer-progress"
             if [ "${GROUP}" = "All" ]; then mvn clean test ${MVN_ARGS} || true; else mvn clean test -Dgroups="${GROUP}" ${MVN_ARGS} || true; fi
