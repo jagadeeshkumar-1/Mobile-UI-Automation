@@ -75,28 +75,44 @@ jobs:
             echo "Push build — running Smoke"
           fi
 
-      - name: Run tests on Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          arch: x86_64
-          profile: pixel_4
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -skin 1080x2280
-          disable-animations: true
-          script: |
-            appium --log-level error &
-            APPIUM_PID=$!
-            sleep 5
-            adb wait-for-device
-            adb shell wm size 1080x2280
-            adb shell wm density 440
-            adb shell input keyevent 82
-            sleep 3
-            GROUP=${{ steps.group.outputs.group }}
-            MVN_ARGS="-B --no-transfer-progress"
-            if [ "${GROUP}" = "All" ]; then mvn clean test ${MVN_ARGS} || true; else mvn clean test -Dgroups="${GROUP}" ${MVN_ARGS} || true; fi
-            kill $APPIUM_PID 2>/dev/null || true
-            wait $APPIUM_PID 2>/dev/null || true
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create AVD and boot emulator
+        run: |
+          echo "y" | sdkmanager "system-images;android-30;google_apis;x86_64"
+          echo "no" | avdmanager create avd -n test_avd -k "system-images;android-30;google_apis;x86_64" --device "pixel_4" --force
+          nohup $ANDROID_HOME/emulator/emulator -avd test_avd -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -skin 1080x2280 &
+          echo "Waiting for emulator to boot..."
+          adb wait-for-device
+          adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 2; done'
+          adb shell wm size 1080x2280
+          adb shell wm density 440
+          adb shell input keyevent 82
+          echo "Emulator ready"
+
+      - name: Start Appium
+        run: |
+          nohup appium --log-level error > /tmp/appium.log 2>&1 &
+          echo $! > /tmp/appium.pid
+          sleep 5
+          echo "Appium started (PID $(cat /tmp/appium.pid))"
+
+      - name: Run tests
+        timeout-minutes: 10
+        run: |
+          GROUP=${{ steps.group.outputs.group }}
+          if [ "${GROUP}" = "All" ]; then
+            mvn clean test -B --no-transfer-progress || true
+          else
+            mvn clean test -Dgroups="${GROUP}" -B --no-transfer-progress || true
+          fi
+
+      - name: Stop Appium and emulator
+        if: always()
+        run: |
+          kill $(cat /tmp/appium.pid) 2>/dev/null || true
+          adb emu kill 2>/dev/null || true
 
       - name: Publish test results
         uses: mikepenz/action-junit-report@v4
