@@ -83,25 +83,13 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: |
-            # Start Appium in background
             appium --log-level error &
-            APPIUM_PID=$!
             sleep 5
-
-            # Wait for emulator to be ready
             adb wait-for-device
             adb shell input keyevent 82
-
-            # Run tests
-            GROUP="${{ steps.group.outputs.group }}"
-            if [ "$GROUP" = "All" ]; then
-              mvn clean test -B --no-transfer-progress || true
-            else
-              mvn clean test -Dgroups="$GROUP" -B --no-transfer-progress || true
-            fi
-
-            # Stop Appium
-            kill $APPIUM_PID 2>/dev/null || true
+            GROUP=${{ steps.group.outputs.group }}
+            MVN_ARGS="-B --no-transfer-progress"
+            if [ "${GROUP}" = "All" ]; then mvn clean test ${MVN_ARGS} || true; else mvn clean test -Dgroups="${GROUP}" ${MVN_ARGS} || true; fi
 
       - name: Publish test results
         uses: dorny/test-reporter@v2
