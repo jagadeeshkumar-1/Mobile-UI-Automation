@@ -96,12 +96,13 @@ jobs:
             if [ "${GROUP}" = "All" ]; then mvn clean test ${MVN_ARGS} || true; else mvn clean test -Dgroups="${GROUP}" ${MVN_ARGS} || true; fi
 
       - name: Publish test results
-        uses: dorny/test-reporter@v2
+        uses: mikepenz/action-junit-report@v4
         if: always()
+        timeout-minutes: 3
         with:
-          name: TestNG Results
-          path: target/surefire-reports/junitreports/*.xml
-          reporter: java-junit
+          report_paths: target/surefire-reports/junitreports/*.xml
+          include_passed: true
+          check_name: TestNG Results
 
       - name: Install Allure CLI
         if: always()
