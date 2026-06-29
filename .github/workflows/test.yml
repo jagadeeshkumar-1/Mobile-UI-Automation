@@ -85,6 +85,7 @@ jobs:
           disable-animations: true
           script: |
             appium --log-level error &
+            APPIUM_PID=$!
             sleep 5
             adb wait-for-device
             adb shell wm size 1080x2280
@@ -94,6 +95,8 @@ jobs:
             GROUP=${{ steps.group.outputs.group }}
             MVN_ARGS="-B --no-transfer-progress"
             if [ "${GROUP}" = "All" ]; then mvn clean test ${MVN_ARGS} || true; else mvn clean test -Dgroups="${GROUP}" ${MVN_ARGS} || true; fi
+            kill $APPIUM_PID 2>/dev/null || true
+            wait $APPIUM_PID 2>/dev/null || true
 
       - name: Publish test results
         uses: mikepenz/action-junit-report@v4
