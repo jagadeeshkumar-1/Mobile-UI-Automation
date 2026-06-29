@@ -1,0 +1,13 @@
+target/
+*.class
+*.jar
+*.log
+.idea/
+*.iml
+.DS_Store
+# Allure reports
+allure-results/
+allure-report/
+
+# APK files are large — download per README instructions
+src/test/resources/apps/*.apk
